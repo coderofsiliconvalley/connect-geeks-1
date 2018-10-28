@@ -1,22 +1,22 @@
-import React, { Component } from "react";
-import { Link, withRouter } from "react-router-dom";
-import TextFieldGroup from "../common/TextFieldGroup";
-import TextAreaFieldGroup from "../common/TextAreaFieldGroup";
-import { connect } from "react-redux";
-import PropTypes from "prop-types";
-import { addExperience } from "../../actions/profileActions";
+import React, { Component } from 'react';
+import { Link, withRouter } from 'react-router-dom';
+import TextFieldGroup from '../common/TextFieldGroup';
+import TextAreaFieldGroup from '../common/TextAreaFieldGroup';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { addExperience } from '../../actions/profileActions';
 
 class AddExperience extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      company: "",
-      title: "",
-      location: "",
-      from: "",
-      to: "",
-      current: false, // on clicking on current, "to"-attribute will be false
-      description: "",
+      company: '',
+      title: '',
+      location: '',
+      from: '',
+      to: '',
+      current: false,
+      description: '',
       errors: {},
       disabled: false
     };
@@ -26,7 +26,6 @@ class AddExperience extends Component {
     this.onCheck = this.onCheck.bind(this);
   }
 
-  // Get current profile  componentWillReceiveProps(nextProps) {
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
       this.setState({ errors: nextProps.errors });
@@ -36,7 +35,7 @@ class AddExperience extends Component {
   onSubmit(e) {
     e.preventDefault();
 
-    let expData = {
+    const expData = {
       company: this.state.company,
       title: this.state.title,
       location: this.state.location,
@@ -46,18 +45,7 @@ class AddExperience extends Component {
       description: this.state.description
     };
 
-    this.props.addExperience(expData, this.props.history); // experience data and history for redirecing
-
-    // after sending data, make fields empty.
-    // this.setState({
-    //   company: "",
-    //   title: "",
-    //   location: "",
-    //   from: "",
-    //   to: "",
-    //   current: "",
-    //   description: ""
-    // });
+    this.props.addExperience(expData, this.props.history);
   }
 
   onChange(e) {
@@ -79,19 +67,14 @@ class AddExperience extends Component {
         <div className="container">
           <div className="row">
             <div className="col-md-8 m-auto">
-              <Link to="/dashboard" className="btn btn-success">
-                Back
+              <Link to="/dashboard" className="btn btn-light">
+                Go Back
               </Link>
-              <h1 className="display-4 text-center">
-                Add Experience
-                <i className="ml-2 fab fa-black-tie" />
-              </h1>
+              <h1 className="display-4 text-center">Add Experience</h1>
               <p className="lead text-center">
-                Add your current or past job or position that you have had.
+                Add any job or position that you have had in the past or current
               </p>
-              <small className="d-block pb-3">
-                * marked fields are compulsory to be filled{" "}
-              </small>
+              <small className="d-block pb-3">* = required fields</small>
               <form onSubmit={this.onSubmit}>
                 <TextFieldGroup
                   placeholder="* Company"
@@ -117,7 +100,7 @@ class AddExperience extends Component {
                 <h6>From Date</h6>
                 <TextFieldGroup
                   name="from"
-                  type="date" // type=date, would give you calender-input-date.
+                  type="date"
                   value={this.state.from}
                   onChange={this.onChange}
                   error={errors.from}
@@ -129,7 +112,7 @@ class AddExperience extends Component {
                   value={this.state.to}
                   onChange={this.onChange}
                   error={errors.to}
-                  disabled={this.state.disabled ? "disabled" : ""}
+                  disabled={this.state.disabled ? 'disabled' : ''}
                 />
                 <div className="form-check mb-4">
                   <input
@@ -142,7 +125,7 @@ class AddExperience extends Component {
                     id="current"
                   />
                   <label htmlFor="current" className="form-check-label">
-                    I am currently working here.
+                    Current Job
                   </label>
                 </div>
                 <TextAreaFieldGroup
@@ -156,7 +139,7 @@ class AddExperience extends Component {
                 <input
                   type="submit"
                   value="Submit"
-                  className="btn btn-success btn-block running mt-4"
+                  className="btn btn-info btn-block mt-4"
                 />
               </form>
             </div>
@@ -167,21 +150,17 @@ class AddExperience extends Component {
   }
 }
 
-// Proptypes validation
 AddExperience.propTypes = {
   addExperience: PropTypes.func.isRequired,
   profile: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired
 };
 
-// mapping of state to props
 const mapStateToProps = state => ({
   profile: state.profile,
   errors: state.errors
 });
 
-// connect it to store
-export default connect(
-  mapStateToProps,
-  { addExperience }
-)(withRouter(AddExperience));
+export default connect(mapStateToProps, { addExperience })(
+  withRouter(AddExperience)
+);

@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import PropTypes from "prop-types";
-import Spinner from "../common/Spinner";
-import ProfileItem from "./ProfileItem";
-import { getProfiles } from "../../actions/profileActions";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import Spinner from '../common/Spinner';
+import ProfileItem from './ProfileItem';
+import { getProfiles } from '../../actions/profileActions';
 
 class Profiles extends Component {
   componentDidMount() {
@@ -15,7 +15,7 @@ class Profiles extends Component {
     let profileItems;
 
     if (profiles === null || loading) {
-      profileItems = <Spinner />;
+      profileItems = <h1>No Profiles</h1>;
     } else {
       if (profiles.length > 0) {
         profileItems = profiles.map(profile => (
@@ -53,7 +53,4 @@ const mapStateToProps = state => ({
   profile: state.profile
 });
 
-export default connect(
-  mapStateToProps,
-  { getProfiles }
-)(Profiles);
+export default connect(mapStateToProps, { getProfiles })(Profiles);

@@ -1,11 +1,11 @@
-import { createStore, applyMiddleware, compose } from "redux";
-import thunk from "redux-thunk";
-import rootReducer from "./reducers/index"; // it will work, even-if you don't give path as index.js
-const middleware = [thunk];
+import { createStore, applyMiddleware, compose } from 'redux';
+import thunk from 'redux-thunk';
+import rootReducer from './reducers';
 
 const initialState = {};
 
-// createStore(reducer, preloaded-initial-state, enhancer/middle-ware)
+const middleware = [thunk];
+
 const store = createStore(
   rootReducer,
   initialState,

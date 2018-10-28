@@ -1,15 +1,15 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { loginUser } from "../../actions/authActions";
-import TextFieldGroup from "../common/TextFieldGroup";
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { loginUser } from '../../actions/authActions';
+import TextFieldGroup from '../common/TextFieldGroup';
 
 class Login extends Component {
   constructor() {
     super();
     this.state = {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
       errors: {}
     };
 
@@ -19,13 +19,13 @@ class Login extends Component {
 
   componentDidMount() {
     if (this.props.auth.isAuthenticated) {
-      this.props.history.push("/dashboard");
+      this.props.history.push('/dashboard');
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.auth.isAuthenticated) {
-      this.props.history.push("/dashboard");
+      this.props.history.push('/dashboard');
     }
 
     if (nextProps.errors) {
@@ -40,15 +40,8 @@ class Login extends Component {
       email: this.state.email,
       password: this.state.password
     };
-    // make post request through redux-store-state passed as props to react-components
-    this.props.loginUser(userData);
 
-    // after sending `post` request, please clear form-values, else
-    // it will add redundant data again-and-again.
-    // this.setState({
-    //   email: "",
-    //   password: ""
-    // });
+    this.props.loginUser(userData);
   }
 
   onChange(e) {
@@ -62,14 +55,10 @@ class Login extends Component {
       <div className="login">
         <div className="container">
           <div className="row">
-            <div className="col-md-8 m-auto border border-warning">
-              <h1 className="display-4 text-center">
-                <i className="fas fa-sign-in-alt text-success " />
-                <br />
-                Log In
-              </h1>
+            <div className="col-md-8 m-auto">
+              <h1 className="display-4 text-center">Log In</h1>
               <p className="lead text-center">
-                Sign in to your Connect-Geeks account
+                Sign in to your DevConnector account
               </p>
               <form onSubmit={this.onSubmit}>
                 <TextFieldGroup
@@ -89,10 +78,7 @@ class Login extends Component {
                   onChange={this.onChange}
                   error={errors.password}
                 />
-                <input
-                  type="submit"
-                  className="btn btn-success btn-block mt-4"
-                />
+                <input type="submit" className="btn btn-info btn-block mt-4" />
               </form>
             </div>
           </div>
@@ -113,7 +99,4 @@ const mapStateToProps = state => ({
   errors: state.errors
 });
 
-export default connect(
-  mapStateToProps,
-  { loginUser }
-)(Login);
+export default connect(mapStateToProps, { loginUser })(Login);
