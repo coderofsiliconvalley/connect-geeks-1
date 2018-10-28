@@ -1,61 +1,57 @@
-// contains post and replies as comments to posts.
-
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const mongoose = require("mongoose");
-const passport = require("passport");
+const mongoose = require('mongoose');
+const passport = require('passport');
 
-// bring Post model Schema
-const Post = require("../../models/Post");
+// Post model
+const Post = require('../../models/Post');
+// Profile model
+const Profile = require('../../models/Profile');
 
-// bring Profile model Schema to validate post's owner
-const Profile = require("../../models/Profile");
+// Validation
+const validatePostInput = require('../../validation/post');
 
-// validate post-data input
-const validatePostInput = require("../../validation/post");
+// @route   GET api/posts/test
+// @desc    Tests post route
+// @access  Public
+router.get('/test', (req, res) => res.json({ msg: 'Posts Works' }));
 
-// @route       GET request to api/posts/test
-// @description Tests posts route
-// @access      Public, without login
-router.get("/test", (req, res) => res.json({ msg: "Posts Works" }));
-
-// @route       GET request to api/posts/
-// @description Tests posts route
-// @access      Public, without login
-router.get("/", (req, res) => {
+// @route   GET api/posts
+// @desc    Get posts
+// @access  Public
+router.get('/', (req, res) => {
   Post.find()
     .sort({ date: -1 })
     .then(posts => res.json(posts))
-    .catch(err =>
-      res.status(404).json({ nopostfound: "Sorry, No any post found" })
-    );
+    .catch(err => res.status(404).json({ nopostsfound: 'No posts found' }));
 });
 
-// @route       GET request to api/posts/:id
-// @description Tests posts route for post of specific user
-// @access      Public, without login
-router.get("/:id", (req, res) => {
+// @route   GET api/posts/:id
+// @desc    Get post by id
+// @access  Public
+router.get('/:id', (req, res) => {
   Post.findById(req.params.id)
     .then(post => res.json(post))
     .catch(err =>
-      res.status(404).json({ nopostfound: "Sorry, No post found with this ID" })
+      res.status(404).json({ nopostfound: 'No post found with that ID' })
     );
 });
 
-// @route       POST request to api/posts
-// @description Create Posts
-// @access      Private, with login
+// @route   POST api/posts
+// @desc    Create post
+// @access  Private
 router.post(
-  "/",
-  passport.authenticate("jwt", { session: false }),
+  '/',
+  passport.authenticate('jwt', { session: false }),
   (req, res) => {
     const { errors, isValid } = validatePostInput(req.body);
 
-    // check validation
+    // Check Validation
     if (!isValid) {
-      // then it has errors, send error-code 400 and error object
+      // If any errors, send 400 with errors object
       return res.status(400).json(errors);
     }
+
     const newPost = new Post({
       text: req.body.text,
       name: req.body.name,
@@ -67,154 +63,139 @@ router.post(
   }
 );
 
-// @route       DELETE request to api/posts/:id
-// @description delete post of specific user
-// @access      Private post, need to login
+// @route   DELETE api/posts/:id
+// @desc    Delete post
+// @access  Private
 router.delete(
-  "/:id",
-  passport.authenticate("jwt", { session: false }),
-  (req, res) => {
-    Profile.findOne({ user: req.user.id })
-      .then(profile => {
-        Post.findById(req.params.id).then(post => {
-          // check for owner of post or not
-          if (post.user.toString() !== req.user.id) {
-            // means not same user who is owner of post
-            return res
-              .status(401)
-              .json({ notautorized: "User not Authorized" });
-          }
-
-          // User = Owner of post, then delete that post
-          post.remove().then(() => res.json({ success: true }));
-        });
-      })
-      .catch(err =>
-        res.status(404).json({ postnotfound: "No Post found to delete" })
-      );
-  }
-);
-
-// @route       POST request to api/like/:id
-// @description Like post by id
-// @access      Private post, need to login
-
-router.post(
-  "/like/:id",
-  passport.authenticate("jwt", { session: false }),
+  '/:id',
+  passport.authenticate('jwt', { session: false }),
   (req, res) => {
     Profile.findOne({ user: req.user.id }).then(profile => {
       Post.findById(req.params.id)
         .then(post => {
-          // first check user has already liked this post or not
-          // we have only option to like and unlike, but not for dislike
+          // Check for post owner
+          if (post.user.toString() !== req.user.id) {
+            return res
+              .status(401)
+              .json({ notauthorized: 'User not authorized' });
+          }
 
+          // Delete
+          post.remove().then(() => res.json({ success: true }));
+        })
+        .catch(err => res.status(404).json({ postnotfound: 'No post found' }));
+    });
+  }
+);
+
+// @route   POST api/posts/like/:id
+// @desc    Like post
+// @access  Private
+router.post(
+  '/like/:id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Profile.findOne({ user: req.user.id }).then(profile => {
+      Post.findById(req.params.id)
+        .then(post => {
           if (
             post.likes.filter(like => like.user.toString() === req.user.id)
               .length > 0
           ) {
             return res
               .status(400)
-              .json({ alreadyliked: "User already liked this post" });
+              .json({ alreadyliked: 'User already liked this post' });
           }
-          // means user haven't liked this post, then add user's id to array of posts.
 
           // Add user id to likes array
           post.likes.unshift({ user: req.user.id });
-          // unshift adds element at starting index.
-          // but adds only on server, we have to make those changes to database
 
           post.save().then(post => res.json(post));
         })
-        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+        .catch(err => res.status(404).json({ postnotfound: 'No post found' }));
     });
   }
 );
 
-// @route       POST request to api/unlike/:id
-// @description Unlike post by id
-// @access      Private post, need to login
-
+// @route   POST api/posts/unlike/:id
+// @desc    Unlike post
+// @access  Private
 router.post(
-  "/unlike/:id",
-  passport.authenticate("jwt", { session: false }),
+  '/unlike/:id',
+  passport.authenticate('jwt', { session: false }),
   (req, res) => {
     Profile.findOne({ user: req.user.id }).then(profile => {
       Post.findById(req.params.id)
         .then(post => {
-          // first check user has already liked this post or not
-          // we have only option to like and unlike, but not for dislike
-
           if (
             post.likes.filter(like => like.user.toString() === req.user.id)
               .length === 0
           ) {
             return res
               .status(400)
-              .json({ notyetliked: "You haven't  liked this post" });
+              .json({ notliked: 'You have not yet liked this post' });
           }
-          // means user haven't liked this post, then add user's id to array of posts.
 
-          // Get remove index from likes-array
+          // Get remove index
           const removeIndex = post.likes
             .map(item => item.user.toString())
             .indexOf(req.user.id);
 
-          // splice index from array to remove one element.
+          // Splice out of array
           post.likes.splice(removeIndex, 1);
 
-          // save newly spliced array to disk now,
+          // Save
           post.save().then(post => res.json(post));
         })
-        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+        .catch(err => res.status(404).json({ postnotfound: 'No post found' }));
     });
   }
 );
 
-// @route       POST request to api/comment/:id
-// @description Add comment to post
-// @access      Private post, need to login
+// @route   POST api/posts/comment/:id
+// @desc    Add comment to post
+// @access  Private
 router.post(
-  "/comment/:id",
-  passport.authenticate("jwt", { session: false }),
+  '/comment/:id',
+  passport.authenticate('jwt', { session: false }),
   (req, res) => {
     const { errors, isValid } = validatePostInput(req.body);
 
-    // check validation
+    // Check Validation
     if (!isValid) {
-      // then it has errors, send error-code 400 and error object
+      // If any errors, send 400 with errors object
       return res.status(400).json(errors);
     }
-    Post.findById(req.params.id).then(post => {
-      const newComment = {
-        text: req.body.text,
-        name: req.body.name,
-        avatar: req.body.avatar,
-        user: req.user.id
-      };
 
-      // Add newComment Object to Comments array
-      post.comments.unshift(newComment);
+    Post.findById(req.params.id)
+      .then(post => {
+        const newComment = {
+          text: req.body.text,
+          name: req.body.name,
+          avatar: req.body.avatar,
+          user: req.user.id
+        };
 
-      // save comments to disk from server
-      post
-        .save()
-        .then(post => res.json(post))
-        .catch(err => res.status(404).json({ postnotfound: "No post found " }));
-    });
+        // Add to comments array
+        post.comments.unshift(newComment);
+
+        // Save
+        post.save().then(post => res.json(post));
+      })
+      .catch(err => res.status(404).json({ postnotfound: 'No post found' }));
   }
 );
 
-// @route       DELETE request to api/comment/:id/:comment_id
-// @description Remove the  comment to post
-// @access      Private post, need to login
-router.post(
-  "/comment/:id/:comment_id",
-  passport.authenticate("jwt", { session: false }),
+// @route   DELETE api/posts/comment/:id/:comment_id
+// @desc    Remove comment from post
+// @access  Private
+router.delete(
+  '/comment/:id/:comment_id',
+  passport.authenticate('jwt', { session: false }),
   (req, res) => {
     Post.findById(req.params.id)
       .then(post => {
-        // check if previous comment exist or not
+        // Check to see if comment exists
         if (
           post.comments.filter(
             comment => comment._id.toString() === req.params.comment_id
@@ -222,9 +203,10 @@ router.post(
         ) {
           return res
             .status(404)
-            .json({ commentnotexist: "Comment with this id doesn't exist" });
+            .json({ commentnotexists: 'Comment does not exist' });
         }
-        // Remove Index then
+
+        // Get remove index
         const removeIndex = post.comments
           .map(item => item._id.toString())
           .indexOf(req.params.comment_id);
@@ -234,7 +216,7 @@ router.post(
 
         post.save().then(post => res.json(post));
       })
-      .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+      .catch(err => res.status(404).json({ postnotfound: 'No post found' }));
   }
 );
 
